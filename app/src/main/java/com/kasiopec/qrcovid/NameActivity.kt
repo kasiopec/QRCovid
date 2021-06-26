@@ -1,5 +1,6 @@
 package com.kasiopec.qrcovid
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -27,6 +29,7 @@ class NameActivity : ComponentActivity() {
                 var editTextState by remember {
                     mutableStateOf("")
                 }
+                val context = LocalContext.current
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
@@ -51,7 +54,11 @@ class NameActivity : ComponentActivity() {
                         editTextState = it
                     }
                     Button(
-                        onClick = {prefsManager.setUserName(editTextState)},
+                        onClick = {
+                            prefsManager.setUserName(editTextState)
+                            val intent = Intent(context, MainActivity::class.java)
+                            startActivity(intent)
+                        },
                         shape = MaterialTheme.shapes.medium,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -113,7 +120,7 @@ fun NameActivityPreview() {
                 style = MaterialTheme.typography.body1,
                 modifier = Modifier.padding(bottom = 64.dp)
             )
-            NameEditField(""){
+            NameEditField("") {
 
             }
             Button(

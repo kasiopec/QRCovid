@@ -31,7 +31,7 @@ import com.kasiopec.qrcovid.components.AppBaseContainer
 import com.kasiopec.qrcovid.ui.theme.QRCovidTheme
 
 class MainActivity : ComponentActivity() {
-
+    private val prefsManager = PrefsManager(this)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                 ){
-                    UserNameContainer(name = "Pavel")
+                    UserNameContainer(name = prefsManager.getUserName())
                     QRCard()
                 }
             }
