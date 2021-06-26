@@ -33,15 +33,12 @@ gen/
 Thumbs.db
                 
 # OSX files
-.DS_Store
                             
 # Android Studio
 .idea
 #.idea/workspace.xml - remove # and delete .idea if it better suit your needs.
-.gradle
 .navigation
 output.json 
     
 #NDK
 obj/
-.externalNativeBuild
