@@ -6,15 +6,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,6 +33,9 @@ class NameActivity : ComponentActivity() {
             AppBaseContainer {
                 var editTextState by remember {
                     mutableStateOf("")
+                }
+                var editTextError by remember {
+                    mutableStateOf(false)
                 }
                 val context = LocalContext.current
                 Column(
@@ -50,14 +58,19 @@ class NameActivity : ComponentActivity() {
                         style = MaterialTheme.typography.body1,
                         modifier = Modifier.padding(bottom = 64.dp)
                     )
-                    NameEditField(editTextState) {
+                    NameEditField(editTextState, editTextError) {
                         editTextState = it
                     }
                     Button(
                         onClick = {
+                            if(editTextState.isEmpty()){
+                                editTextError = true
+                                return@Button
+                            }
                             prefsManager.setUserName(editTextState)
                             val intent = Intent(context, MainActivity::class.java)
                             startActivity(intent)
+                            finish()
                         },
                         shape = MaterialTheme.shapes.medium,
                         modifier = Modifier
@@ -77,14 +90,21 @@ class NameActivity : ComponentActivity() {
 
 
 @Composable
-fun NameEditField(value: String, updateString: (String) -> Unit) {
-
+fun NameEditField(value: String, isError: Boolean, updateString: (String) -> Unit) {
+    val focusManager = LocalFocusManager.current
     OutlinedTextField(
+        isError = isError,
         value = value,
         label = {
-            Text(
-                stringResource(id = R.string.hint_user_name)
-            )
+            if(isError){
+                Text(
+                    stringResource(id = R.string.error_empty_name)
+                )
+            }else{
+                Text(
+                    stringResource(id = R.string.hint_user_name)
+                )
+            }
         },
         onValueChange = {
             updateString(it)
@@ -92,8 +112,11 @@ fun NameEditField(value: String, updateString: (String) -> Unit) {
         singleLine = true,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp)
+            .padding(bottom = 24.dp),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus()})
     )
+
 }
 
 @Preview(showBackground = true)
@@ -120,7 +143,7 @@ fun NameActivityPreview() {
                 style = MaterialTheme.typography.body1,
                 modifier = Modifier.padding(bottom = 64.dp)
             )
-            NameEditField("") {
+            NameEditField("", true) {
 
             }
             Button(

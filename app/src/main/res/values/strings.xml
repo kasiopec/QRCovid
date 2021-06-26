@@ -14,6 +14,7 @@
     <string name="annotation_url_covid_certificate">covid19sertifikats.lv</string>
     <string name="title_activity_login">LoginActivity</string>
     <string name="hint_user_name">Name</string>
+    <string name="error_empty_name">Please enter valid name!</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Sign in</string>
