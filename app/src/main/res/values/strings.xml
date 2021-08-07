@@ -2,12 +2,14 @@
     <string name="app_name">QRCovid</string>
     <string name="user_greetings">Hello %1s!</string>
     <string name="button_scan">Scan QR code</string>
+    <string name="button_upload">Upload QR image</string>
     <string name="button_continue">Continue</string>
 
     <string name="text_no_qr_body_1">You don\'t have any covid certificate added. \n Please scan QR code to add it to the app.</string>
     <string name="text_no_qr_body_2">If you are vaccinated you can get your QR code here</string>
     <string name="text_no_qr_heading">Oops…</string>
     <string name="text_new_user">Hi! \n Welcome to QRCovid app. \n Please enter your name so we know how to call you.</string>
+    <string name="text_qr_heading">Your Covid pass QR code</string>
 
 
     <string name="url_covid_certificate">https://covid19sertifikats.lv/</string>

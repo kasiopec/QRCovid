@@ -1,22 +1,26 @@
 package com.kasiopec.qrcovid
 
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -25,13 +29,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.kasiopec.qrcovid.components.AppBaseContainer
-import com.kasiopec.qrcovid.ui.theme.QRCovidTheme
 
 class MainActivity : ComponentActivity() {
+
     private val prefsManager = PrefsManager(this)
+    private var imageUriState = mutableStateOf<Uri?>(null)
+    private var bitmap = mutableStateOf<Bitmap?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -39,16 +45,39 @@ class MainActivity : ComponentActivity() {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
-                ){
+                ) {
                     UserNameContainer(name = prefsManager.getUserName())
-                    QRCard()
+                    val uri = imageUriState.value
+                    if (uri != null) {
+                        if (Build.VERSION.SDK_INT < 28) {
+                            bitmap.value = MediaStore.Images.Media.getBitmap(
+                                this@MainActivity.contentResolver,
+                                uri
+                            )
+                        } else {
+                            val bitmapSource =
+                                ImageDecoder.createSource(this@MainActivity.contentResolver, uri)
+                            bitmap.value = ImageDecoder.decodeBitmap(bitmapSource) { decoder, _, _ ->
+                                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                                decoder.isMutableRequired = true
+                            }
+                        }
+                        bitmap.value?.let {
+                            QRCard(bitmap = it)
+                        }
+                    } else {
+                        NoQRCard(selectImageLauncher)
+                    }
                 }
             }
         }
     }
+
+    private val selectImageLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            imageUriState.value = uri
+        }
 }
-
-
 
 
 @Composable
@@ -68,7 +97,7 @@ fun UserNameContainer(name: String) {
 }
 
 @Composable
-fun QRCard() {
+fun NoQRCard(launcher: ActivityResultLauncher<String>) {
     Card(
         elevation = 5.dp,
         modifier = Modifier
@@ -108,11 +137,11 @@ fun QRCard() {
                 modifier = Modifier.padding(bottom = 32.dp, top = 8.dp)
             )
             Button(
-                onClick = {},
+                onClick = { launcher.launch("image/*") },
                 shape = MaterialTheme.shapes.medium
             ) {
                 Text(
-                    stringResource(id = R.string.button_scan),
+                    stringResource(id = R.string.button_upload),
                     color = MaterialTheme.colors.onPrimary
                 )
             }
@@ -121,8 +150,41 @@ fun QRCard() {
     }
 }
 
+
+@Composable
+fun QRCard(bitmap : Bitmap) {
+    val context = LocalContext.current
+    Card(
+        elevation = 5.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                stringResource(id = R.string.text_qr_heading),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier.padding(bottom = 16.dp)
+
+            )
+            Image(
+                bitmap = QRView.recreateQrCodeFromBitmap(context, bitmap),
+                contentDescription = null,
+                Modifier
+                    .padding(vertical = 10.dp)
+            )
+        }
+    }
+}
+
+
 @Composable
 fun AnnotatedClickableText(url: String, annotationText: String, modifier: Modifier) {
+    val uriHandler = LocalUriHandler.current
     val annotatedText = buildAnnotatedString {
         // We attach this *URL* annotation to the following content
         // until `pop()` is called
@@ -155,7 +217,7 @@ fun AnnotatedClickableText(url: String, annotationText: String, modifier: Modifi
                 end = offset
             )
                 .firstOrNull()?.let { annotation ->
-                    // If yes, we log its value
+                    uriHandler.openUri(annotation.item)
                 }
         }
     )
@@ -165,7 +227,13 @@ fun AnnotatedClickableText(url: String, annotationText: String, modifier: Modifi
 @Composable
 fun DefaultPreview() {
     AppBaseContainer {
-        QRCard()
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            UserNameContainer(name = "Unknown")
+            //QRCard()
+        }
     }
 }
 
