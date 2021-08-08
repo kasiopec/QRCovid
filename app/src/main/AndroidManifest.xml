@@ -6,6 +6,7 @@
     <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
 
     <application
+        android:name=".App"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
@@ -15,7 +16,7 @@
         android:theme="@style/Theme.QRCovid"
         android:windowSoftInputMode="adjustResize">
         <activity
-            android:name=".SplashScreen"
+            android:name="com.kasiopec.qrcovid.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -2,11 +2,8 @@ package com.kasiopec.qrcovid
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.FloatProperty
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
@@ -19,10 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.kasiopec.qrcovid.components.AppBaseContainer
+import com.kasiopec.qrcovid.base_components.AppBaseContainer
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-class SplashScreen : ComponentActivity() {
-    private val prefsManager = PrefsManager(this)
+@AndroidEntryPoint
+class SplashActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var prefsManager : PrefsManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent{

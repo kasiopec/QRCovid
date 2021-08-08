@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -30,11 +31,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.kasiopec.qrcovid.components.AppBaseContainer
+import com.kasiopec.qrcovid.base_components.AppBaseContainer
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val prefsManager = PrefsManager(this)
+    @Inject
+    lateinit var prefsManager : PrefsManager
+    @Inject
+    lateinit var qrView: QRView
+
     private var imageUriState = mutableStateOf<Uri?>(null)
     private var bitmap = mutableStateOf<Bitmap?>(null)
 
@@ -42,30 +50,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AppBaseContainer {
+                val userCovidPassCode = prefsManager.getCovidPassCode()
+                val uri = imageUriState.value
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                 ) {
                     UserNameContainer(name = prefsManager.getUserName())
-                    val uri = imageUriState.value
-                    if (uri != null) {
-                        if (Build.VERSION.SDK_INT < 28) {
-                            bitmap.value = MediaStore.Images.Media.getBitmap(
-                                this@MainActivity.contentResolver,
-                                uri
-                            )
-                        } else {
-                            val bitmapSource =
-                                ImageDecoder.createSource(this@MainActivity.contentResolver, uri)
-                            bitmap.value = ImageDecoder.decodeBitmap(bitmapSource) { decoder, _, _ ->
-                                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-                                decoder.isMutableRequired = true
-                            }
-                        }
+
+                    if (userCovidPassCode != null){
+                        QRCard(imageBitmap = qrView.generateQrImage(userCovidPassCode))
+                    }else if(uri != null) {
+                        createBitmapFromUri(uri)
                         bitmap.value?.let {
-                            QRCard(bitmap = it)
+                            QRCard(imageBitmap = qrView.recreateQrCodeFromBitmap(it))
                         }
-                    } else {
+                    }else{
                         NoQRCard(selectImageLauncher)
                     }
                 }
@@ -77,6 +77,22 @@ class MainActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             imageUriState.value = uri
         }
+
+    private fun createBitmapFromUri(uri : Uri){
+        if (Build.VERSION.SDK_INT < 28) {
+            bitmap.value = MediaStore.Images.Media.getBitmap(
+                this@MainActivity.contentResolver,
+                uri
+            )
+        } else {
+            val bitmapSource =
+                ImageDecoder.createSource(this@MainActivity.contentResolver, uri)
+            bitmap.value = ImageDecoder.decodeBitmap(bitmapSource) { decoder, _, _ ->
+                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                decoder.isMutableRequired = true
+            }
+        }
+    }
 }
 
 
@@ -152,7 +168,7 @@ fun NoQRCard(launcher: ActivityResultLauncher<String>) {
 
 
 @Composable
-fun QRCard(bitmap : Bitmap) {
+fun QRCard(imageBitmap : ImageBitmap) {
     val context = LocalContext.current
     Card(
         elevation = 5.dp,
@@ -172,7 +188,7 @@ fun QRCard(bitmap : Bitmap) {
 
             )
             Image(
-                bitmap = QRView.recreateQrCodeFromBitmap(context, bitmap),
+                bitmap = imageBitmap,
                 contentDescription = null,
                 Modifier
                     .padding(vertical = 10.dp)
