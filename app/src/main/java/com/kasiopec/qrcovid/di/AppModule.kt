@@ -14,11 +14,8 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class AppModule {
-
-    companion object {
-        private const val PREF_USER_PREFERENCES = "USER_PREFS"
-    }
+object AppModule {
+    private const val PREF_USER_PREFERENCES = "USER_PREFS"
 
     @Singleton
     @Provides
@@ -30,5 +27,6 @@ class AppModule {
     fun providePrefsManager(preferences: SharedPreferences) = PrefsManager(preferences)
 
     @Provides
-    fun provideQrView(@ApplicationContext context: Context): QRView = QRView(context)
+    fun provideQrView(@ApplicationContext context: Context, prefsManager: PrefsManager): QRView =
+        QRView(context, prefsManager)
 }

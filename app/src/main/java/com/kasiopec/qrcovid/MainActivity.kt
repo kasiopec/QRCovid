@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
@@ -39,12 +40,13 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject
-    lateinit var prefsManager : PrefsManager
+    lateinit var prefsManager: PrefsManager
+
     @Inject
     lateinit var qrView: QRView
 
     private var imageUriState = mutableStateOf<Uri?>(null)
-    private var bitmap = mutableStateOf<Bitmap?>(null)
+    private var imageBitmap = mutableStateOf<ImageBitmap?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,16 +59,17 @@ class MainActivity : ComponentActivity() {
                     verticalArrangement = Arrangement.Center,
                 ) {
                     UserNameContainer(name = prefsManager.getUserName())
-
-                    if (userCovidPassCode != null){
-                        QRCard(imageBitmap = qrView.generateQrImage(userCovidPassCode))
-                    }else if(uri != null) {
-                        createBitmapFromUri(uri)
-                        bitmap.value?.let {
-                            QRCard(imageBitmap = qrView.recreateQrCodeFromBitmap(it))
+                    when {
+                        userCovidPassCode != null -> QRCard(
+                            imageBitmap = qrView.generateQrImage(userCovidPassCode)
+                        )
+                        uri != null -> {
+                            createBitmapFromUri(uri)
+                            imageBitmap.value?.also {
+                                QRCard(imageBitmap = it)
+                            } ?: HandleNullCase(selectImageLauncher)
                         }
-                    }else{
-                        NoQRCard(selectImageLauncher)
+                        else -> NoQRCard(selectImageLauncher)
                     }
                 }
             }
@@ -78,21 +81,33 @@ class MainActivity : ComponentActivity() {
             imageUriState.value = uri
         }
 
-    private fun createBitmapFromUri(uri : Uri){
+    private fun createBitmapFromUri(uri: Uri) {
+        val bitmap: Bitmap?
         if (Build.VERSION.SDK_INT < 28) {
-            bitmap.value = MediaStore.Images.Media.getBitmap(
+            bitmap = MediaStore.Images.Media.getBitmap(
                 this@MainActivity.contentResolver,
                 uri
             )
         } else {
             val bitmapSource =
                 ImageDecoder.createSource(this@MainActivity.contentResolver, uri)
-            bitmap.value = ImageDecoder.decodeBitmap(bitmapSource) { decoder, _, _ ->
+            bitmap = ImageDecoder.decodeBitmap(bitmapSource) { decoder, _, _ ->
                 decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
                 decoder.isMutableRequired = true
             }
         }
+
+        bitmap?.let {
+            imageBitmap.value = qrView.recreateQrCodeFromBitmap(it)
+        }
     }
+}
+
+@Composable
+fun HandleNullCase(launcher: ActivityResultLauncher<String>){
+    val context = LocalContext.current
+    Toast.makeText(context, "Unable to decode the image", Toast.LENGTH_SHORT).show()
+    NoQRCard(launcher)
 }
 
 
@@ -168,7 +183,7 @@ fun NoQRCard(launcher: ActivityResultLauncher<String>) {
 
 
 @Composable
-fun QRCard(imageBitmap : ImageBitmap) {
+fun QRCard(imageBitmap: ImageBitmap) {
     val context = LocalContext.current
     Card(
         elevation = 5.dp,
