@@ -12,13 +12,18 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -47,6 +52,12 @@ class MainActivity : ComponentActivity() {
 
     private var imageUriState = mutableStateOf<Uri?>(null)
     private var imageBitmap = mutableStateOf<ImageBitmap?>(null)
+    private var showNoQrCard = mutableStateOf(false)
+
+    private val selectImageLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            imageUriState.value = uri
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,18 +66,28 @@ class MainActivity : ComponentActivity() {
                 val userCovidPassCode = prefsManager.getCovidPassCode()
                 val uri = imageUriState.value
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colors.primary,
+                                    MaterialTheme.colors.secondary
+                                )
+                            )
+                        ),
                     verticalArrangement = Arrangement.Center,
                 ) {
                     UserNameContainer(name = prefsManager.getUserName())
                     when {
                         userCovidPassCode != null -> QRCard(
+                            prefsManager = prefsManager,
                             imageBitmap = qrView.generateQrImage(userCovidPassCode)
                         )
                         uri != null -> {
-                            createBitmapFromUri(uri)
+                            createImageBitmapFromUri(uri)
                             imageBitmap.value?.also {
-                                QRCard(imageBitmap = it)
+                                QRCard(prefsManager = prefsManager, imageBitmap = it)
                             } ?: HandleNullCase(selectImageLauncher)
                         }
                         else -> NoQRCard(selectImageLauncher)
@@ -76,12 +97,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private val selectImageLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            imageUriState.value = uri
-        }
-
-    private fun createBitmapFromUri(uri: Uri) {
+    private fun createImageBitmapFromUri(uri: Uri) {
         val bitmap: Bitmap?
         if (Build.VERSION.SDK_INT < 28) {
             bitmap = MediaStore.Images.Media.getBitmap(
@@ -104,7 +120,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun HandleNullCase(launcher: ActivityResultLauncher<String>){
+fun HandleNullCase(launcher: ActivityResultLauncher<String>) {
     val context = LocalContext.current
     Toast.makeText(context, "Unable to decode the image", Toast.LENGTH_SHORT).show()
     NoQRCard(launcher)
@@ -121,7 +137,8 @@ fun UserNameContainer(name: String) {
     ) {
         Text(
             stringResource(id = R.string.user_greetings, name),
-            style = MaterialTheme.typography.h3
+            style = MaterialTheme.typography.h3,
+            color = MaterialTheme.colors.onPrimary
         )
     }
 
@@ -183,7 +200,7 @@ fun NoQRCard(launcher: ActivityResultLauncher<String>) {
 
 
 @Composable
-fun QRCard(imageBitmap: ImageBitmap) {
+fun QRCard(prefsManager: PrefsManager, imageBitmap: ImageBitmap) {
     val context = LocalContext.current
     Card(
         elevation = 5.dp,
@@ -207,6 +224,20 @@ fun QRCard(imageBitmap: ImageBitmap) {
                 contentDescription = null,
                 Modifier
                     .padding(vertical = 10.dp)
+            )
+        }
+    }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        IconButton(onClick = {
+            prefsManager.removeCovidPassCode()
+        }) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_baseline_close_white_24),
+                "",
+                modifier = Modifier
+                    .height(32.dp)
+                    .width(32.dp)
             )
         }
     }
@@ -263,7 +294,9 @@ fun DefaultPreview() {
             verticalArrangement = Arrangement.Center,
         ) {
             UserNameContainer(name = "Unknown")
-            //QRCard()
+            FloatingActionButton(onClick = {}) {
+                Icon(Icons.Filled.Close, "")
+            }
         }
     }
 }

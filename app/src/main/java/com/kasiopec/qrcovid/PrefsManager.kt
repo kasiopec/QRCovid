@@ -19,6 +19,12 @@ class PrefsManager @Inject constructor(private val preferences : SharedPreferenc
         }
     }
 
+    fun removeCovidPassCode(){
+        preferences.edit{
+            remove(KEY_COVID_PASS_CODE)
+        }
+    }
+
     fun getUserName() : String {
         return preferences.getString(KEY_USER_NAME, null) ?: "User"
     }
