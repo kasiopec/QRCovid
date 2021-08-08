@@ -52,7 +52,6 @@ class MainActivity : ComponentActivity() {
 
     private var imageUriState = mutableStateOf<Uri?>(null)
     private var imageBitmap = mutableStateOf<ImageBitmap?>(null)
-    private var showNoQrCard = mutableStateOf(false)
 
     private val selectImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -61,9 +60,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val qrCodeState = mutableStateOf(prefsManager.getCovidPassCode())
+
         setContent {
             AppBaseContainer {
-                val userCovidPassCode = prefsManager.getCovidPassCode()
+                val userCovidPassCode = qrCodeState.value
                 val uri = imageUriState.value
                 Column(
                     modifier = Modifier
@@ -83,11 +85,17 @@ class MainActivity : ComponentActivity() {
                         userCovidPassCode != null -> QRCard(
                             prefsManager = prefsManager,
                             imageBitmap = qrView.generateQrImage(userCovidPassCode)
-                        )
+                        ) {
+                            qrCodeState.value = it as String?
+                            imageUriState.value = it as Uri?
+                        }
                         uri != null -> {
                             createImageBitmapFromUri(uri)
-                            imageBitmap.value?.also {
-                                QRCard(prefsManager = prefsManager, imageBitmap = it)
+                            imageBitmap.value?.also { image ->
+                                QRCard(prefsManager = prefsManager, imageBitmap = image) {
+                                    qrCodeState.value = it as String?
+                                    imageUriState.value = it as Uri?
+                                }
                             } ?: HandleNullCase(selectImageLauncher)
                         }
                         else -> NoQRCard(selectImageLauncher)
@@ -200,8 +208,7 @@ fun NoQRCard(launcher: ActivityResultLauncher<String>) {
 
 
 @Composable
-fun QRCard(prefsManager: PrefsManager, imageBitmap: ImageBitmap) {
-    val context = LocalContext.current
+fun QRCard(prefsManager: PrefsManager, imageBitmap: ImageBitmap, state: (Any?) -> Unit) {
     Card(
         elevation = 5.dp,
         modifier = Modifier
@@ -231,6 +238,7 @@ fun QRCard(prefsManager: PrefsManager, imageBitmap: ImageBitmap) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         IconButton(onClick = {
             prefsManager.removeCovidPassCode()
+            state(null)
         }) {
             Image(
                 painter = painterResource(id = R.drawable.ic_baseline_close_white_24),
