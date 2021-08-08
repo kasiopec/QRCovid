@@ -16,8 +16,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
@@ -38,6 +36,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kasiopec.qrcovid.base_components.AppBaseContainer
+import com.kasiopec.qrcovid.ui.theme.QRCovidTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -60,45 +59,69 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         val qrCodeState = mutableStateOf(prefsManager.getCovidPassCode())
 
         setContent {
-            AppBaseContainer {
-                val userCovidPassCode = qrCodeState.value
-                val uri = imageUriState.value
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colors.primary,
-                                    MaterialTheme.colors.secondary
-                                )
-                            )
-                        ),
-                    verticalArrangement = Arrangement.Center,
+            val scaffoldState = rememberScaffoldState()
+            val showDialog = remember { mutableStateOf(false) }
+            QRCovidTheme {
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text("My Certificate") },
+                            backgroundColor = MaterialTheme.colors.primaryVariant
+                        )
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                    scaffoldState = scaffoldState
                 ) {
-                    UserNameContainer(name = prefsManager.getUserName())
-                    when {
-                        userCovidPassCode != null -> QRCard(
-                            prefsManager = prefsManager,
-                            imageBitmap = qrView.generateQrImage(userCovidPassCode)
-                        ) {
-                            qrCodeState.value = it as String?
-                            imageUriState.value = it as Uri?
+                    val userCovidPassCode = qrCodeState.value
+                    val uri = imageUriState.value
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colors.primary,
+                                        MaterialTheme.colors.secondary
+                                    )
+                                )
+                            ),
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        UserNameContainer(name = prefsManager.getUserName())
+                        if (showDialog.value) {
+                            AlertDialogBox(
+                                name = "Delete",
+                                description = "Do you want to delete this QR code?",
+                                showDialog = showDialog.value,
+                                onDismiss = {
+                                    showDialog.value = false
+                                }, onConfirm = {
+                                    prefsManager.removeCovidPassCode()
+                                    qrCodeState.value = null
+                                    imageUriState.value = null
+                                    showDialog.value = false
+                                })
                         }
-                        uri != null -> {
-                            createImageBitmapFromUri(uri)
-                            imageBitmap.value?.also { image ->
-                                QRCard(prefsManager = prefsManager, imageBitmap = image) {
-                                    qrCodeState.value = it as String?
-                                    imageUriState.value = it as Uri?
-                                }
-                            } ?: HandleNullCase(selectImageLauncher)
+                        when {
+                            userCovidPassCode != null -> QRCard(
+                                prefsManager = prefsManager,
+                                imageBitmap = qrView.generateQrImage(userCovidPassCode)
+                            ) {
+                                showDialog.value = it
+                            }
+                            uri != null -> {
+                                createImageBitmapFromUri(uri)
+                                imageBitmap.value?.also { image ->
+                                    QRCard(prefsManager = prefsManager, imageBitmap = image) {
+                                        showDialog.value = it
+                                    }
+                                } ?: HandleNullCase(selectImageLauncher)
+                            }
+                            else -> NoQRCard(selectImageLauncher)
                         }
-                        else -> NoQRCard(selectImageLauncher)
                     }
                 }
             }
@@ -208,7 +231,17 @@ fun NoQRCard(launcher: ActivityResultLauncher<String>) {
 
 
 @Composable
-fun QRCard(prefsManager: PrefsManager, imageBitmap: ImageBitmap, state: (Any?) -> Unit) {
+fun QRCard(prefsManager: PrefsManager, imageBitmap: ImageBitmap, state: (Boolean) -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        Text(
+            stringResource(id = R.string.text_qr_heading),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.body1,
+            modifier = Modifier.padding(bottom = 16.dp),
+            color = MaterialTheme.colors.onPrimary
+
+        )
+    }
     Card(
         elevation = 5.dp,
         modifier = Modifier
@@ -216,16 +249,9 @@ fun QRCard(prefsManager: PrefsManager, imageBitmap: ImageBitmap, state: (Any?) -
             .padding(16.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(4.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                stringResource(id = R.string.text_qr_heading),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.body1,
-                modifier = Modifier.padding(bottom = 16.dp)
-
-            )
             Image(
                 bitmap = imageBitmap,
                 contentDescription = null,
@@ -237,8 +263,7 @@ fun QRCard(prefsManager: PrefsManager, imageBitmap: ImageBitmap, state: (Any?) -
 
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         IconButton(onClick = {
-            prefsManager.removeCovidPassCode()
-            state(null)
+            state(true)
         }) {
             Image(
                 painter = painterResource(id = R.drawable.ic_baseline_close_white_24),
@@ -248,6 +273,34 @@ fun QRCard(prefsManager: PrefsManager, imageBitmap: ImageBitmap, state: (Any?) -
                     .width(32.dp)
             )
         }
+    }
+}
+
+@Composable
+fun AlertDialogBox(
+    name: String,
+    description: String,
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    if (showDialog) {
+        AlertDialog(
+            title = {
+                Text(text =name)
+            },
+            text = {
+                Text(text = description)
+            },
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }})
     }
 }
 
@@ -302,9 +355,7 @@ fun DefaultPreview() {
             verticalArrangement = Arrangement.Center,
         ) {
             UserNameContainer(name = "Unknown")
-            FloatingActionButton(onClick = {}) {
-                Icon(Icons.Filled.Close, "")
-            }
+            //AlertDialogBox(name = "Test", description = "Test", showDialog = true, onDismiss = {}, onConfirm = {})
         }
     }
 }
