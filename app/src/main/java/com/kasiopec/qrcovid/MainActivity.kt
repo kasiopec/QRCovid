@@ -35,7 +35,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.kasiopec.qrcovid.base_components.AppBaseContainer
+import com.kasiopec.qrcovid.base_components.BottomBar
+import com.kasiopec.qrcovid.navigation.BottomBarScreen
 import com.kasiopec.qrcovid.ui.theme.QRCovidTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -64,6 +70,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val scaffoldState = rememberScaffoldState()
             val showDialog = remember { mutableStateOf(false) }
+            val navController = rememberNavController()
             QRCovidTheme {
                 Scaffold(
                     topBar = {
@@ -71,6 +78,9 @@ class MainActivity : ComponentActivity() {
                             title = { Text("My Certificate") },
                             backgroundColor = MaterialTheme.colors.primaryVariant
                         )
+                    },
+                    bottomBar = {
+                        BottomBar(navController = navController)
                     },
                     modifier = Modifier.fillMaxSize(),
                     scaffoldState = scaffoldState
@@ -121,6 +131,7 @@ class MainActivity : ComponentActivity() {
                             }
                             else -> NoQRCard(selectImageLauncher)
                         }
+                        BottomBarMain(navController = navController)
                     }
                 }
             }
@@ -156,7 +167,47 @@ fun HandleNullCase(launcher: ActivityResultLauncher<String>) {
     NoQRCard(launcher)
 }
 
+@Composable
+fun BottomBarMain(navController: NavHostController) {
+    NavHost(
+        navController = navController,
+        startDestination = BottomBarScreen.Home.route
+    ) {
+        composable(BottomBarScreen.Account.route) {
 
+        }
+
+        composable(BottomBarScreen.Home.route) {
+            MainActivity()
+        }
+
+        composable(BottomBarScreen.DocumentViewer.route){
+            //Do nothing
+        }
+    }
+}
+
+/**
+public fun NavGraphBuilder.composable(
+route: String,
+arguments: List<NamedNavArgument> = emptyList(),
+deepLinks: List<NavDeepLink> = emptyList(),
+content: @Composable (NavBackStackEntry) -> Unit
+) {
+addDestination(
+ComposeNavigator.Destination(provider[ComposeNavigator::class], content).apply {
+this.route = route
+arguments.forEach { (argName, arg) ->
+addArgument(argName, arg)
+}
+
+deepLinks.forEach { deepLinkUrl ->
+addDeepLink(deepLinkUrl)
+}
+}
+)
+}
+ **/
 @Composable
 fun UserNameContainer(name: String) {
     Row(
