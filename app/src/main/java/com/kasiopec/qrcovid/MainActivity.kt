@@ -107,7 +107,6 @@ class MainActivity : ComponentActivity() {
                         }
                         when {
                             userCovidPassCode != null -> QRCard(
-                                prefsManager = prefsManager,
                                 imageBitmap = qrView.generateQrImage(userCovidPassCode)
                             ) {
                                 showDialog.value = it
@@ -115,7 +114,7 @@ class MainActivity : ComponentActivity() {
                             uri != null -> {
                                 createImageBitmapFromUri(uri)
                                 imageBitmap.value?.also { image ->
-                                    QRCard(prefsManager = prefsManager, imageBitmap = image) {
+                                    QRCard(imageBitmap = image) {
                                         showDialog.value = it
                                     }
                                 } ?: HandleNullCase(selectImageLauncher)
@@ -231,7 +230,7 @@ fun NoQRCard(launcher: ActivityResultLauncher<String>) {
 
 
 @Composable
-fun QRCard(prefsManager: PrefsManager, imageBitmap: ImageBitmap, state: (Boolean) -> Unit) {
+fun QRCard(imageBitmap: ImageBitmap, state: (Boolean) -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         Text(
             stringResource(id = R.string.text_qr_heading),
@@ -287,7 +286,7 @@ fun AlertDialogBox(
     if (showDialog) {
         AlertDialog(
             title = {
-                Text(text =name)
+                Text(text = name)
             },
             text = {
                 Text(text = description)
@@ -298,9 +297,11 @@ fun AlertDialogBox(
                     Text("OK")
                 }
             },
-            dismissButton = {TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }})
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            })
     }
 }
 
