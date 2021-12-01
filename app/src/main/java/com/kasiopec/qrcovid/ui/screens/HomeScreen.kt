@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -32,26 +33,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.navigation.NavController
 import com.kasiopec.qrcovid.*
 import com.kasiopec.qrcovid.R
 import com.kasiopec.qrcovid.app_components.BottomBar
-import com.kasiopec.qrcovid.navigation.BottomBarScreen
 import com.kasiopec.qrcovid.ui.theme.QRCovidTheme
-import javax.inject.Inject
 
 @Composable
-fun HomeScreen(prefsManager : PrefsManager, qrView : QRView){
+fun HomeScreen(prefsManager : PrefsManager, qrView : QRView, navController: NavController){
     val scaffoldState = rememberScaffoldState()
     val showDialog = remember { mutableStateOf(false) }
     val qrCodeState = remember {mutableStateOf(prefsManager.getCovidPassCode())}
-    var imageUriState = remember {mutableStateOf<Uri?>(null)}
-    var imageBitmap = remember {mutableStateOf<ImageBitmap?>(null)}
+    val imageUriState = remember {mutableStateOf<Uri?>(null)}
+    val imageBitmap = remember {mutableStateOf<ImageBitmap?>(null)}
     val context = LocalContext.current
-    val selectImageLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val selectImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             imageUriState.value = uri
         }
     QRCovidTheme {
@@ -63,7 +59,7 @@ fun HomeScreen(prefsManager : PrefsManager, qrView : QRView){
                 )
             },
             bottomBar = {
-                BottomBar()
+                BottomBar(navController)
             },
             modifier = Modifier.fillMaxSize(),
             scaffoldState = scaffoldState
@@ -105,7 +101,7 @@ fun HomeScreen(prefsManager : PrefsManager, qrView : QRView){
                         showDialog.value = it
                     }
                     uri != null -> {
-                        createImageBitmapFromUri(context, uri)
+                        imageBitmap.value = createImageBitmapFromUri(context, uri, qrView)
                         imageBitmap.value?.also { image ->
                             QRCard(imageBitmap = image) {
                                 showDialog.value = it
@@ -114,34 +110,35 @@ fun HomeScreen(prefsManager : PrefsManager, qrView : QRView){
                     }
                     else -> NoQRCard(selectImageLauncher)
                 }
-                BottomBarMain(navController = navController, prefsManager = prefsManager)
+                //BottomBarMain(navController = navController, prefsManager = prefsManager)
             }
         }
     }
 
-    fun createImageBitmapFromUri(context: Context, uri: Uri) {
-        val bitmap: Bitmap?
-        if (Build.VERSION.SDK_INT < 28) {
-            bitmap = MediaStore.Images.Media.getBitmap(
-                context.contentResolver,
-                uri
-            )
-        } else {
-            val bitmapSource =
-                ImageDecoder.createSource(context.contentResolver, uri)
-            bitmap = ImageDecoder.decodeBitmap(bitmapSource) { decoder, _, _ ->
-                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-                decoder.isMutableRequired = true
-            }
-        }
 
-        bitmap?.let {
-            imageBitmap.value = qrView.recreateQrCodeFromBitmap(it)
-        }
-    }
 
 }
 
+fun createImageBitmapFromUri(context: Context, uri: Uri, qrView: QRView) : ImageBitmap? {
+    val bitmap: Bitmap?
+    if (Build.VERSION.SDK_INT < 28) {
+        bitmap = MediaStore.Images.Media.getBitmap(
+            context.contentResolver,
+            uri
+        )
+    } else {
+        val bitmapSource =
+            ImageDecoder.createSource(context.contentResolver, uri)
+        bitmap = ImageDecoder.decodeBitmap(bitmapSource) { decoder, _, _ ->
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            decoder.isMutableRequired = true
+        }
+    }
+
+    return bitmap?.let {
+       qrView.recreateQrCodeFromBitmap(it)
+    }
+}
 
 
 
@@ -152,25 +149,7 @@ fun HandleNullCase(launcher: ActivityResultLauncher<String>) {
     NoQRCard(launcher)
 }
 
-@Composable
-fun BottomBarMain(navController: NavHostController, prefsManager: PrefsManager) {
-    NavHost(
-        navController = navController,
-        startDestination = BottomBarScreen.Home.route
-    ) {
-        composable(BottomBarScreen.Account.route) {
-            AccountScreen(prefsManager = prefsManager)
-        }
 
-        composable(BottomBarScreen.Home.route) {
-            MainActivity()
-        }
-
-        composable(BottomBarScreen.DocumentViewer.route) {
-            //Do nothing
-        }
-    }
-}
 
 /**
 public fun NavGraphBuilder.composable(

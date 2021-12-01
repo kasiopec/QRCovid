@@ -15,8 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import com.kasiopec.qrcovid.navigation.BottomBarScreen
 
 @Composable
-fun BottomBar() {
-    val navController = rememberNavController()
+fun BottomBar(navController: NavController) {
     val items = listOf(
         BottomBarScreen.Account,
         BottomBarScreen.Home,
