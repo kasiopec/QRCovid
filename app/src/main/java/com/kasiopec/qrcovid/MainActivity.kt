@@ -174,7 +174,7 @@ fun BottomBarMain(navController: NavHostController) {
         startDestination = BottomBarScreen.Home.route
     ) {
         composable(BottomBarScreen.Account.route) {
-
+            NameActivity()
         }
 
         composable(BottomBarScreen.Home.route) {

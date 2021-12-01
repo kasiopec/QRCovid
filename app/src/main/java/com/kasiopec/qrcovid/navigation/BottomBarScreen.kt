@@ -6,19 +6,19 @@ import com.kasiopec.qrcovid.R
 sealed class BottomBarScreen(val route: String, val title: String, @DrawableRes val icon: Int) {
     object Home : BottomBarScreen(
         route = "home",
-        title = "QR Certificate",
+        title = "QR Cert",
         icon = R.drawable.ic_qr_code_scanner_24
     )
 
     object Account : BottomBarScreen(
         route = "account",
-        title = "My Account",
+        title = "Account",
         icon = R.drawable.ic_account_box_24
     )
 
     object DocumentViewer : BottomBarScreen(
         route = "documentViewer",
-        title = "Vaccine certeficate",
+        title = "PDF Cert",
         icon = R.drawable.ic_document_24_black
     )
 }
