@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.kasiopec.qrcovid.base_components.AppBaseContainer
+import com.kasiopec.qrcovid.app_components.AppBaseContainer
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

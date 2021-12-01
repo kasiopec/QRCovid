@@ -22,7 +22,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.kasiopec.qrcovid.base_components.AppBaseContainer
+import com.kasiopec.qrcovid.app_components.AppBaseContainer
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

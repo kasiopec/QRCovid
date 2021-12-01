@@ -1,4 +1,4 @@
-package com.kasiopec.qrcovid.base_components
+package com.kasiopec.qrcovid.app_components
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Scaffold
