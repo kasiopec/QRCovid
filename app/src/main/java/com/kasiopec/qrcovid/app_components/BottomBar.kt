@@ -1,4 +1,4 @@
-package com.kasiopec.qrcovid.base_components
+package com.kasiopec.qrcovid.app_components
 
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -8,14 +8,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType.Companion.Text
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.kasiopec.qrcovid.navigation.BottomBarScreen
 
 @Composable
-fun BottomBar(navController: NavController) {
+fun BottomBar() {
+    val navController = rememberNavController()
     val items = listOf(
         BottomBarScreen.Account,
         BottomBarScreen.Home,
