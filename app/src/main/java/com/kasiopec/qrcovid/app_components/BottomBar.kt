@@ -31,7 +31,13 @@ fun BottomBar(navController: NavController) {
                 selected = currentRoute == it.route,
                 onClick = {
                     navController.navigate(it.route){
-                        popUpTo(0)
+                        //if not Home, remove everything up to home
+                        //otherwise remove everything
+                        if(it.route != BottomBarScreen.Home.route){
+                            popUpTo(BottomBarScreen.Home.route)
+                        }else{
+                            popUpTo(0)
+                        }
                     }
                 },
                 icon = {
