@@ -66,54 +66,65 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
             },
             modifier = Modifier.fillMaxSize(),
             scaffoldState = scaffoldState
-        ) {
-            val userCovidPassCode = qrCodeState.value
-            val uri = imageUriState.value
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colors.primary,
-                                MaterialTheme.colors.secondary
-                            )
-                        )
-                    ),
-                verticalArrangement = Arrangement.Center,
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier.padding(
+                    PaddingValues(
+                        0.dp,
+                        0.dp,
+                        0.dp,
+                        innerPadding.calculateBottomPadding()
+                    )
+                )
             ) {
-                UserNameContainer(name = prefsManager.getUserName())
-                if (showDialog.value) {
-                    AlertDialogBox(
-                        name = "Delete",
-                        description = "Do you want to delete this QR code?",
-                        showDialog = showDialog.value,
-                        onDismiss = {
-                            showDialog.value = false
-                        }, onConfirm = {
-                            prefsManager.removeCovidPassCode()
-                            qrCodeState.value = null
-                            imageUriState.value = null
-                            showDialog.value = false
-                        })
-                }
-                when {
-                    userCovidPassCode != null -> QRCard(
-                        imageBitmap = qrView.generateQrImage(userCovidPassCode)
-                    ) {
-                        showDialog.value = it
+                val userCovidPassCode = qrCodeState.value
+                val uri = imageUriState.value
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colors.primary,
+                                    MaterialTheme.colors.secondary
+                                )
+                            )
+                        ),
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    UserNameContainer(name = prefsManager.getUserName())
+                    if (showDialog.value) {
+                        AlertDialogBox(
+                            name = "Delete",
+                            description = "Do you want to delete this QR code?",
+                            showDialog = showDialog.value,
+                            onDismiss = {
+                                showDialog.value = false
+                            }, onConfirm = {
+                                prefsManager.removeCovidPassCode()
+                                qrCodeState.value = null
+                                imageUriState.value = null
+                                showDialog.value = false
+                            })
                     }
-                    uri != null -> {
-                        imageBitmap.value = createImageBitmapFromUri(context, uri, qrView)
-                        imageBitmap.value?.also { image ->
-                            QRCard(imageBitmap = image) {
-                                showDialog.value = it
-                            }
-                        } ?: HandleNullCase(selectImageLauncher)
+                    when {
+                        userCovidPassCode != null -> QRCard(
+                            imageBitmap = qrView.generateQrImage(userCovidPassCode)
+                        ) {
+                            showDialog.value = it
+                        }
+                        uri != null -> {
+                            imageBitmap.value = createImageBitmapFromUri(context, uri, qrView)
+                            imageBitmap.value?.also { image ->
+                                QRCard(imageBitmap = image) {
+                                    showDialog.value = it
+                                }
+                            } ?: HandleNullCase(selectImageLauncher)
+                        }
+                        else -> NoQRCard(selectImageLauncher)
                     }
-                    else -> NoQRCard(selectImageLauncher)
+                    //BottomBarMain(navController = navController, prefsManager = prefsManager)
                 }
-                //BottomBarMain(navController = navController, prefsManager = prefsManager)
             }
         }
     }
