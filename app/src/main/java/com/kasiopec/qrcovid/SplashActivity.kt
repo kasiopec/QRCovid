@@ -36,11 +36,7 @@ class SplashActivity : ComponentActivity() {
                 targetValue = sizeState,
                 animationSpec = tween(1500, delayMillis = 300),
                 finishedListener = {
-                    val intent : Intent = if(prefsManager.getUserName()=="User"){
-                        Intent(this, NameActivity::class.java)
-                    }else{
-                        Intent(this, MainActivity::class.java)
-                    }
+                    val intent = Intent(this, MainActivity::class.java)
                     startActivity(intent)
                     finish()
                 }

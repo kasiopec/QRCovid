@@ -29,7 +29,11 @@ fun BottomBar(navController: NavController) {
         items.map {
             BottomNavigationItem(
                 selected = currentRoute == it.route,
-                onClick = { navController.navigate(it.route) },
+                onClick = {
+                    navController.navigate(it.route){
+                        popUpTo(0)
+                    }
+                },
                 icon = {
                     Icon(
                         painter = painterResource(id = it.icon),

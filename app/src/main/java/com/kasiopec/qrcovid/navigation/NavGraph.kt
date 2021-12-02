@@ -14,10 +14,17 @@ import com.kasiopec.qrcovid.ui.screens.HomeScreen
 fun AppNavGraph(navController: NavHostController, prefsManager: PrefsManager, qrView: QRView) {
     NavHost(
         navController = navController,
-        startDestination = BottomBarScreen.Home.route
+        startDestination = if(prefsManager.getUserName()=="User"){
+            BottomBarScreen.Account.route
+        }else{
+            BottomBarScreen.Home.route
+        }
     ) {
         composable(BottomBarScreen.Account.route) {
-            AccountScreen(prefsManager = prefsManager)
+            AccountScreen(
+                navController = navController,
+                prefsManager = prefsManager
+            )
         }
 
         composable(BottomBarScreen.Home.route) {

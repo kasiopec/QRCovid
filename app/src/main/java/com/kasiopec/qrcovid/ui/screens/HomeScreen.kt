@@ -40,14 +40,15 @@ import com.kasiopec.qrcovid.app_components.BottomBar
 import com.kasiopec.qrcovid.ui.theme.QRCovidTheme
 
 @Composable
-fun HomeScreen(prefsManager : PrefsManager, qrView : QRView, navController: NavController){
+fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavController) {
     val scaffoldState = rememberScaffoldState()
     val showDialog = remember { mutableStateOf(false) }
-    val qrCodeState = remember {mutableStateOf(prefsManager.getCovidPassCode())}
-    val imageUriState = remember {mutableStateOf<Uri?>(null)}
-    val imageBitmap = remember {mutableStateOf<ImageBitmap?>(null)}
+    val qrCodeState = remember { mutableStateOf(prefsManager.getCovidPassCode()) }
+    val imageUriState = remember { mutableStateOf<Uri?>(null) }
+    val imageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
     val context = LocalContext.current
-    val selectImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val selectImageLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             imageUriState.value = uri
         }
     QRCovidTheme {
@@ -59,7 +60,9 @@ fun HomeScreen(prefsManager : PrefsManager, qrView : QRView, navController: NavC
                 )
             },
             bottomBar = {
-                BottomBar(navController)
+                if (prefsManager.getUserName() != "User") {
+                    BottomBar(navController = navController)
+                }
             },
             modifier = Modifier.fillMaxSize(),
             scaffoldState = scaffoldState
@@ -114,12 +117,9 @@ fun HomeScreen(prefsManager : PrefsManager, qrView : QRView, navController: NavC
             }
         }
     }
-
-
-
 }
 
-fun createImageBitmapFromUri(context: Context, uri: Uri, qrView: QRView) : ImageBitmap? {
+fun createImageBitmapFromUri(context: Context, uri: Uri, qrView: QRView): ImageBitmap? {
     val bitmap: Bitmap?
     if (Build.VERSION.SDK_INT < 28) {
         bitmap = MediaStore.Images.Media.getBitmap(
@@ -136,10 +136,9 @@ fun createImageBitmapFromUri(context: Context, uri: Uri, qrView: QRView) : Image
     }
 
     return bitmap?.let {
-       qrView.recreateQrCodeFromBitmap(it)
+        qrView.recreateQrCodeFromBitmap(it)
     }
 }
-
 
 
 @Composable
@@ -148,7 +147,6 @@ fun HandleNullCase(launcher: ActivityResultLauncher<String>) {
     Toast.makeText(context, "Unable to decode the image", Toast.LENGTH_SHORT).show()
     NoQRCard(launcher)
 }
-
 
 
 /**
