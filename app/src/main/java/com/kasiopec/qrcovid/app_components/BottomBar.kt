@@ -10,8 +10,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.kasiopec.qrcovid.navigation.BottomBarScreen
 
 @Composable
@@ -30,13 +30,10 @@ fun BottomBar(navController: NavController) {
             BottomNavigationItem(
                 selected = currentRoute == it.route,
                 onClick = {
-                    navController.navigate(it.route){
-                        //if not Home, remove everything up to home
-                        //otherwise remove everything
-                        if(it.route != BottomBarScreen.Home.route){
-                            popUpTo(BottomBarScreen.Home.route)
-                        }else{
-                            popUpTo(0)
+                    navController.navigate(it.route) {
+                        if (it.route != BottomBarScreen.Home.route) {
+                            popUpTo(navController.graph.findStartDestination().id)
+                            launchSingleTop = true
                         }
                     }
                 },
