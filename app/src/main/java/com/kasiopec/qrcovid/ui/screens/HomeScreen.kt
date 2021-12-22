@@ -48,7 +48,6 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
     val qrCodeState = remember { mutableStateOf(prefsManager.getCovidPassCode()) }
     val imageUriState = remember { mutableStateOf<Uri?>(null) }
     val imageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
-    val bottomRowbackgroundColor = remember { mutableStateOf(Color.Transparent) }
     val context = LocalContext.current
     val selectImageLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -64,7 +63,8 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
                         Text(
                             modifier = Modifier.fillMaxWidth(),
                             color = MaterialTheme.colors.onPrimary,
-                            text = "My Certificate",
+                            style=MaterialTheme.typography.h5,
+                            text = stringResource(id = R.string.title_home_screen),
                             textAlign = TextAlign.Center
                         )
                     },
