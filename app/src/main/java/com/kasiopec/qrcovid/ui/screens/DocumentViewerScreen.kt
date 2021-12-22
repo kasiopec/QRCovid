@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
-import com.kasiopec.qrcovid.app_components.BottomBar
+import com.kasiopec.qrcovid.app_components.BottomBarNavigator
 import com.kasiopec.qrcovid.ui.theme.QRCovidTheme
 
 @Composable
@@ -23,7 +23,7 @@ fun DocumentViewerScreen(navController: NavController) {
                 )
             },
             bottomBar = {
-                BottomBar(navController)
+                BottomBarNavigator(navController)
             },
             modifier = Modifier.fillMaxSize(),
             scaffoldState = scaffoldState

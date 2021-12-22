@@ -13,6 +13,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -20,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -36,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.kasiopec.qrcovid.*
 import com.kasiopec.qrcovid.R
-import com.kasiopec.qrcovid.app_components.BottomBar
+import com.kasiopec.qrcovid.app_components.BottomBarNavigator
 import com.kasiopec.qrcovid.ui.theme.QRCovidTheme
 
 @Composable
@@ -51,6 +54,8 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             imageUriState.value = uri
         }
+    val userCovidPassCode = qrCodeState.value
+    val uri = imageUriState.value
     QRCovidTheme {
         Scaffold(
             topBar = {
@@ -61,11 +66,40 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
             },
             bottomBar = {
                 if (prefsManager.getUserName() != "User") {
-                    BottomBar(navController = navController)
+                    BottomAppBar(
+                        elevation = 5.dp,
+                        modifier = Modifier
+                            .height(65.dp)
+                            .clip(RoundedCornerShape(15.dp, 15.dp, 0.dp, 0.dp)),
+                        cutoutShape = CircleShape
+                    ) {
+                        BottomBarNavigator(
+                            navController = navController
+                        )
+                    }
                 }
             },
-            modifier = Modifier.fillMaxSize(),
-            scaffoldState = scaffoldState
+            floatingActionButtonPosition = FabPosition.Center,
+            isFloatingActionButtonDocked = true,
+            floatingActionButton = {
+                if(userCovidPassCode != null || uri != null){
+                    FloatingDeleteButton {
+                        showDialog.value = it
+                    }
+                }else{
+                    FloatingAddQRCodeButton(launcher = selectImageLauncher)
+                }
+            },
+            modifier = Modifier.fillMaxSize().background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colors.primary,
+                        MaterialTheme.colors.secondary
+                    )
+                )
+            ),
+            scaffoldState = scaffoldState,
+            backgroundColor = Color.Transparent
         ) { innerPadding ->
             Box(
                 modifier = Modifier.padding(
@@ -77,19 +111,9 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
                     )
                 )
             ) {
-                val userCovidPassCode = qrCodeState.value
-                val uri = imageUriState.value
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colors.primary,
-                                    MaterialTheme.colors.secondary
-                                )
-                            )
-                        ),
+                        .fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                 ) {
                     UserNameContainer(name = prefsManager.getUserName())
@@ -159,28 +183,42 @@ fun HandleNullCase(launcher: ActivityResultLauncher<String>) {
     NoQRCard(launcher)
 }
 
-
 /**
-public fun NavGraphBuilder.composable(
-route: String,
-arguments: List<NamedNavArgument> = emptyList(),
-deepLinks: List<NavDeepLink> = emptyList(),
-content: @Composable (NavBackStackEntry) -> Unit
-) {
-addDestination(
-ComposeNavigator.Destination(provider[ComposeNavigator::class], content).apply {
-this.route = route
-arguments.forEach { (argName, arg) ->
-addArgument(argName, arg)
+ * Returns floating action composable
+ * with the state that controls deletion dialog box
+ * */
+@Composable
+fun FloatingDeleteButton(state: (Boolean) -> Unit) {
+    FloatingActionButton(
+        onClick = { state(true) },
+        shape = CircleShape,
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_baseline_close_white_24),
+            "",
+            modifier = Modifier
+                .height(32.dp)
+                .width(32.dp)
+        )
+    }
 }
 
-deepLinks.forEach { deepLinkUrl ->
-addDeepLink(deepLinkUrl)
+@Composable
+fun FloatingAddQRCodeButton(launcher: ActivityResultLauncher<String>) {
+    FloatingActionButton(
+        onClick = { launcher.launch("image/*") },
+        shape = CircleShape,
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_qr_code_scanner_white_24),
+            "",
+            modifier = Modifier
+                .height(32.dp)
+                .width(32.dp),
+        )
+    }
 }
-}
-)
-}
- **/
+
 @Composable
 fun UserNameContainer(name: String) {
     Row(
@@ -238,15 +276,15 @@ fun NoQRCard(launcher: ActivityResultLauncher<String>) {
                 annotationText = stringResource(id = R.string.annotation_url_covid_certificate),
                 modifier = Modifier.padding(bottom = 32.dp, top = 8.dp)
             )
-            Button(
-                onClick = { launcher.launch("image/*") },
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text(
-                    stringResource(id = R.string.button_upload),
-                    color = MaterialTheme.colors.onPrimary
-                )
-            }
+//            Button(
+//                onClick = { launcher.launch("image/*") },
+//                shape = MaterialTheme.shapes.medium
+//            ) {
+//                Text(
+//                    stringResource(id = R.string.button_upload),
+//                    color = MaterialTheme.colors.onPrimary
+//                )
+//            }
 
         }
     }
@@ -284,19 +322,19 @@ fun QRCard(imageBitmap: ImageBitmap, state: (Boolean) -> Unit) {
         }
     }
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-        IconButton(onClick = {
-            state(true)
-        }) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_baseline_close_white_24),
-                "",
-                modifier = Modifier
-                    .height(32.dp)
-                    .width(32.dp)
-            )
-        }
-    }
+//    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+//        IconButton(onClick = {
+//            state(true)
+//        }) {
+//            Image(
+//                painter = painterResource(id = R.drawable.ic_baseline_close_white_24),
+//                "",
+//                modifier = Modifier
+//                    .height(32.dp)
+//                    .width(32.dp)
+//            )
+//        }
+//    }
 }
 
 @Composable

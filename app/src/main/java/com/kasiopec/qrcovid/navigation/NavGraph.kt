@@ -35,8 +35,8 @@ fun AppNavGraph(navController: NavHostController, prefsManager: PrefsManager, qr
             )
         }
 
-        composable(BottomBarScreen.DocumentViewer.route) {
-            DocumentViewerScreen(navController)
-        }
+//        composable(BottomBarScreen.DocumentViewer.route) {
+//            DocumentViewerScreen(navController)
+//        }
     }
 }
