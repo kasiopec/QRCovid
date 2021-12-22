@@ -23,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -60,8 +59,16 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("My Certificate") },
-                    backgroundColor = MaterialTheme.colors.primaryVariant
+                    title = {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colors.onPrimary,
+                            text = "My Certificate",
+                            textAlign = TextAlign.Center
+                        )
+                    },
+                    backgroundColor = Color.Transparent,
+                    elevation = 0.dp
                 )
             },
             bottomBar = {
@@ -71,7 +78,7 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
                         modifier = Modifier
                             .height(65.dp)
                             .clip(RoundedCornerShape(15.dp, 15.dp, 0.dp, 0.dp)),
-                        cutoutShape = CircleShape
+                        cutoutShape = CircleShape,
                     ) {
                         BottomBarNavigator(
                             navController = navController
@@ -82,22 +89,25 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
             floatingActionButtonPosition = FabPosition.Center,
             isFloatingActionButtonDocked = true,
             floatingActionButton = {
-                if(userCovidPassCode != null || uri != null){
+                if (userCovidPassCode != null || uri != null) {
                     FloatingDeleteButton {
                         showDialog.value = it
                     }
-                }else{
+                } else {
                     FloatingAddQRCodeButton(launcher = selectImageLauncher)
                 }
             },
-            modifier = Modifier.fillMaxSize().background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colors.primary,
-                        MaterialTheme.colors.secondary
-                    )
-                )
-            ),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    color = MaterialTheme.colors.primaryVariant
+//                    brush = Brush.verticalGradient(
+//                        colors = listOf(
+//                            MaterialTheme.colors.primaryVariant,
+//                            MaterialTheme.colors.onPrimary
+//                        )
+//                    )
+                ),
             scaffoldState = scaffoldState,
             backgroundColor = Color.Transparent
         ) { innerPadding ->

@@ -36,9 +36,21 @@ onSurface = Color.Black,
 */
 )
 
+private val LightNewColorPalette = lightColors(
+    primary = BottomBar,
+    primaryVariant = CoffeDark,
+    onPrimary = GhostWhite,
+
+    secondary = Cinnabar,
+    secondaryVariant = KeppelLight,
+    onSecondary = Color.Black,
+
+    background = Color.White,
+    onSurface = Color.Black
+)
 @Composable
 fun QRCovidTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable() () -> Unit) {
-    val colors = LightColorPalette
+    val colors = LightNewColorPalette
 
     MaterialTheme(
         colors = colors,
