@@ -48,6 +48,7 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
     val qrCodeState = remember { mutableStateOf(prefsManager.getCovidPassCode()) }
     val imageUriState = remember { mutableStateOf<Uri?>(null) }
     val imageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
+    val bottomRowbackgroundColor = remember { mutableStateOf(Color.Transparent) }
     val context = LocalContext.current
     val selectImageLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -67,16 +68,15 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
                             textAlign = TextAlign.Center
                         )
                     },
-                    backgroundColor = Color.Transparent,
+                    backgroundColor = MaterialTheme.colors.primaryVariant,
                     elevation = 0.dp
                 )
             },
             bottomBar = {
                 if (prefsManager.getUserName() != "User") {
                     BottomAppBar(
-                        elevation = 5.dp,
+                        elevation = 8.dp,
                         modifier = Modifier
-                            .height(65.dp)
                             .clip(RoundedCornerShape(15.dp, 15.dp, 0.dp, 0.dp)),
                         cutoutShape = CircleShape,
                     ) {
@@ -98,18 +98,14 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
                 }
             },
             modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    color = MaterialTheme.colors.primaryVariant
-//                    brush = Brush.verticalGradient(
-//                        colors = listOf(
-//                            MaterialTheme.colors.primaryVariant,
-//                            MaterialTheme.colors.onPrimary
-//                        )
-//                    )
-                ),
+                .fillMaxSize(),
             scaffoldState = scaffoldState,
-            backgroundColor = Color.Transparent
+            backgroundColor = if (userCovidPassCode != null || uri != null) {
+                MaterialTheme.colors.primaryVariant
+            } else {
+                Color.Transparent
+            }
+
         ) { innerPadding ->
             Box(
                 modifier = Modifier.padding(
@@ -121,6 +117,7 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
                     )
                 )
             ) {
+                TwoAreas()
                 Column(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -142,23 +139,43 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
                             })
                     }
                     when {
-                        userCovidPassCode != null -> QRCard(
-                            imageBitmap = qrView.generateQrImage(userCovidPassCode)
-                        ) {
-                            showDialog.value = it
+                        userCovidPassCode != null -> {
+                            QRCard(
+                                imageBitmap = qrView.generateQrImage(userCovidPassCode)
+                            )
                         }
                         uri != null -> {
                             imageBitmap.value = createImageBitmapFromUri(context, uri, qrView)
                             imageBitmap.value?.also { image ->
-                                QRCard(imageBitmap = image) {
-                                    showDialog.value = it
-                                }
-                            } ?: HandleNullCase(selectImageLauncher)
+                                QRCard(imageBitmap = image)
+                            } ?: HandleNullCase()
                         }
-                        else -> NoQRCard(selectImageLauncher)
+                        else -> NoQRCard()
                     }
-                    //BottomBarMain(navController = navController, prefsManager = prefsManager)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun TwoAreas() {
+    return Box(modifier = Modifier.fillMaxSize()) {
+        Column() {
+            Row(
+                modifier = Modifier
+                    .weight(1.0f)
+                    .fillMaxWidth()
+                    .background(color = MaterialTheme.colors.primaryVariant)
+            ) {
+            }
+
+            Row(
+                modifier = Modifier
+                    .weight(1.0f)
+                    .fillMaxWidth()
+                    .background(color = Color.Transparent)
+            ) {
             }
         }
     }
@@ -187,10 +204,10 @@ fun createImageBitmapFromUri(context: Context, uri: Uri, qrView: QRView): ImageB
 
 
 @Composable
-fun HandleNullCase(launcher: ActivityResultLauncher<String>) {
+fun HandleNullCase() {
     val context = LocalContext.current
     Toast.makeText(context, "Unable to decode the image", Toast.LENGTH_SHORT).show()
-    NoQRCard(launcher)
+    NoQRCard()
 }
 
 /**
@@ -247,12 +264,13 @@ fun UserNameContainer(name: String) {
 }
 
 @Composable
-fun NoQRCard(launcher: ActivityResultLauncher<String>) {
+fun NoQRCard() {
     Card(
         elevation = 5.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(PaddingValues(0.dp, 16.dp))
+            .clip(RoundedCornerShape(30.dp, 30.dp, 0.dp, 0.dp))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -286,23 +304,13 @@ fun NoQRCard(launcher: ActivityResultLauncher<String>) {
                 annotationText = stringResource(id = R.string.annotation_url_covid_certificate),
                 modifier = Modifier.padding(bottom = 32.dp, top = 8.dp)
             )
-//            Button(
-//                onClick = { launcher.launch("image/*") },
-//                shape = MaterialTheme.shapes.medium
-//            ) {
-//                Text(
-//                    stringResource(id = R.string.button_upload),
-//                    color = MaterialTheme.colors.onPrimary
-//                )
-//            }
-
         }
     }
 }
 
 
 @Composable
-fun QRCard(imageBitmap: ImageBitmap, state: (Boolean) -> Unit) {
+fun QRCard(imageBitmap: ImageBitmap) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         Text(
             stringResource(id = R.string.text_qr_heading),
@@ -318,6 +326,7 @@ fun QRCard(imageBitmap: ImageBitmap, state: (Boolean) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
+            .clip(RoundedCornerShape(30.dp, 30.dp, 30.dp, 30.dp))
     ) {
         Column(
             modifier = Modifier.padding(4.dp),
@@ -331,20 +340,6 @@ fun QRCard(imageBitmap: ImageBitmap, state: (Boolean) -> Unit) {
             )
         }
     }
-
-//    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-//        IconButton(onClick = {
-//            state(true)
-//        }) {
-//            Image(
-//                painter = painterResource(id = R.drawable.ic_baseline_close_white_24),
-//                "",
-//                modifier = Modifier
-//                    .height(32.dp)
-//                    .width(32.dp)
-//            )
-//        }
-//    }
 }
 
 @Composable

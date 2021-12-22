@@ -1,18 +1,15 @@
 package com.kasiopec.qrcovid.app_components
 
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
-import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -21,7 +18,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.kasiopec.qrcovid.navigation.BottomBarScreen
-import java.lang.reflect.Modifier
 
 @Composable
 fun BottomBarNavigator(navController: NavController) {
@@ -29,8 +25,9 @@ fun BottomBarNavigator(navController: NavController) {
         BottomBarScreen.Account,
         BottomBarScreen.Home
     )
-    CompositionLocalProvider(LocalRippleTheme provides NoRippleTheme) {
-        BottomNavigation {
+        //CompositionLocalProvider(LocalRippleTheme provides NoRippleTheme) {
+        BottomNavigation(modifier = Modifier
+            .clip(RoundedCornerShape(15.dp, 15.dp, 0.dp, 0.dp))){
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
 
@@ -55,7 +52,7 @@ fun BottomBarNavigator(navController: NavController) {
                     },
                     label = {
                         Text(
-                            text = it.title
+                            text = it.title,
                         )
                     },
                     selectedContentColor = Color.White,
@@ -63,7 +60,7 @@ fun BottomBarNavigator(navController: NavController) {
                 )
             }
         }
-    }
+    //}
 }
 
 private object NoRippleTheme : RippleTheme {
