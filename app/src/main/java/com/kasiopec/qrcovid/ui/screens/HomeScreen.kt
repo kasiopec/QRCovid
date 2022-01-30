@@ -6,9 +6,10 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -39,6 +40,7 @@ import androidx.navigation.NavController
 import com.kasiopec.qrcovid.*
 import com.kasiopec.qrcovid.R
 import com.kasiopec.qrcovid.app_components.BottomBarNavigator
+import com.kasiopec.qrcovid.tools.FileManager
 import com.kasiopec.qrcovid.ui.theme.QRCovidTheme
 
 @Composable
@@ -49,8 +51,9 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
     val imageUriState = remember { mutableStateOf<Uri?>(null) }
     val imageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
     val context = LocalContext.current
+    val fileManager = FileManager(context)
     val selectImageLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             imageUriState.value = uri
         }
     val userCovidPassCode = qrCodeState.value
@@ -145,6 +148,9 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
                             )
                         }
                         uri != null -> {
+                            Log.d("checkState", "I ma called")
+                            fileManager.copyFileToInternal(uri)
+                            fileManager.unzipCovidPass()
                             imageBitmap.value = createImageBitmapFromUri(context, uri, qrView)
                             imageBitmap.value?.also { image ->
                                 QRCard(imageBitmap = image)
@@ -231,9 +237,9 @@ fun FloatingDeleteButton(state: (Boolean) -> Unit) {
 }
 
 @Composable
-fun FloatingAddQRCodeButton(launcher: ActivityResultLauncher<String>) {
+fun FloatingAddQRCodeButton(launcher: ManagedActivityResultLauncher<Array<String>, Uri?>) {
     FloatingActionButton(
-        onClick = { launcher.launch("image/*") },
+        onClick = { launcher.launch(arrayOf("application/octet-stream", "image/*")) },
         shape = CircleShape,
     ) {
         Image(
