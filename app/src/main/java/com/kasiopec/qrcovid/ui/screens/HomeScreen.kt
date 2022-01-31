@@ -6,7 +6,6 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -41,6 +40,7 @@ import com.kasiopec.qrcovid.*
 import com.kasiopec.qrcovid.R
 import com.kasiopec.qrcovid.app_components.BottomBarNavigator
 import com.kasiopec.qrcovid.tools.FileManager
+import com.kasiopec.qrcovid.tools.MimeUtil.getMimeType
 import com.kasiopec.qrcovid.ui.theme.QRCovidTheme
 
 @Composable
@@ -148,13 +148,19 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
                             )
                         }
                         uri != null -> {
-                            Log.d("checkState", "I ma called")
-                            fileManager.copyFileToInternal(uri)
-                            fileManager.unzipCovidPass()
-                            imageBitmap.value = createImageBitmapFromUri(context, uri, qrView)
-                            imageBitmap.value?.also { image ->
-                                QRCard(imageBitmap = image)
-                            } ?: HandleNullCase()
+                            uri.getMimeType(context)?.let{ mimeType ->
+                                if(mimeType.contains("image")){
+                                    createImageBitmapFromUri(context, uri, qrView)?.also{
+                                        QRCard(imageBitmap = it)
+                                    } ?: NoQRCard().also{
+                                        Toast.makeText(context, "Unable to decode the image", Toast.LENGTH_SHORT).show()
+                                        imageUriState.value = null
+                                    }
+                                }else{
+                                    fileManager.copyFileToInternal(uri)
+                                    fileManager.unzipCovidPass()
+                                }
+                            }
                         }
                         else -> NoQRCard()
                     }
@@ -206,14 +212,6 @@ fun createImageBitmapFromUri(context: Context, uri: Uri, qrView: QRView): ImageB
     return bitmap?.let {
         qrView.recreateQrCodeFromBitmap(it)
     }
-}
-
-
-@Composable
-fun HandleNullCase() {
-    val context = LocalContext.current
-    Toast.makeText(context, "Unable to decode the image", Toast.LENGTH_SHORT).show()
-    NoQRCard()
 }
 
 /**
