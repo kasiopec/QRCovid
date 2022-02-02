@@ -12,11 +12,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,12 +37,15 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.kasiopec.qrcovid.*
 import com.kasiopec.qrcovid.R
 import com.kasiopec.qrcovid.app_components.BottomBarNavigator
+import com.kasiopec.qrcovid.navigation.BottomBarScreen
 import com.kasiopec.qrcovid.tools.FileManager
+import com.kasiopec.qrcovid.tools.MimeUtil
 import com.kasiopec.qrcovid.tools.MimeUtil.getMimeType
 import com.kasiopec.qrcovid.ui.theme.QRCovidTheme
 
@@ -49,7 +55,6 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
     val showDialog = remember { mutableStateOf(false) }
     val qrCodeState = remember { mutableStateOf(prefsManager.getCovidPassCode()) }
     val imageUriState = remember { mutableStateOf<Uri?>(null) }
-    val imageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
     val context = LocalContext.current
     val fileManager = FileManager(context)
     val selectImageLauncher =
@@ -67,13 +72,26 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
                             modifier = Modifier.fillMaxWidth(),
                             color = MaterialTheme.colors.onPrimary,
                             style=MaterialTheme.typography.h5,
-                            text = stringResource(id = R.string.title_home_screen),
-                            textAlign = TextAlign.Center
+                            text = stringResource(id = R.string.title_home_screen)
                         )
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = {
+                                navController.navigate(BottomBarScreen.Account.route)
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.Person,
+                                //painter = painterResource(id = R.drawable.ic_account_box_24),
+                                contentDescription = "Profile button"
+                            )
+                        }
                     },
                     backgroundColor = MaterialTheme.colors.primaryVariant,
                     elevation = 0.dp
                 )
+
             },
             bottomBar = {
                 if (prefsManager.getUserName() != "User") {
@@ -100,16 +118,17 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
                     FloatingAddQRCodeButton(launcher = selectImageLauncher)
                 }
             },
-            modifier = Modifier
-                .fillMaxSize(),
             scaffoldState = scaffoldState,
             backgroundColor = if (userCovidPassCode != null || uri != null) {
                 MaterialTheme.colors.primaryVariant
             } else {
-                Color.Transparent
-            }
+                MaterialTheme.colors.primaryVariant
+
+            },
+            modifier = Modifier.fillMaxSize()
 
         ) { innerPadding ->
+
             Box(
                 modifier = Modifier.padding(
                     PaddingValues(
@@ -120,10 +139,11 @@ fun HomeScreen(prefsManager: PrefsManager, qrView: QRView, navController: NavCon
                     )
                 )
             ) {
-                TwoAreas()
+                //TwoAreas()
                 Column(
                     modifier = Modifier
-                        .fillMaxSize(),
+                        .fillMaxSize()
+                        .background(color = Color.Transparent),
                     verticalArrangement = Arrangement.Center,
                 ) {
                     UserNameContainer(name = prefsManager.getUserName())
@@ -237,7 +257,7 @@ fun FloatingDeleteButton(state: (Boolean) -> Unit) {
 @Composable
 fun FloatingAddQRCodeButton(launcher: ManagedActivityResultLauncher<Array<String>, Uri?>) {
     FloatingActionButton(
-        onClick = { launcher.launch(arrayOf("application/octet-stream", "image/*")) },
+        onClick = { launcher.launch(MimeUtil.mimeArray) },
         shape = CircleShape,
     ) {
         Image(
@@ -255,7 +275,7 @@ fun UserNameContainer(name: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
+            .padding(bottom = 16.dp),
         horizontalArrangement = Arrangement.Center,
     ) {
         Text(
@@ -416,4 +436,10 @@ fun AnnotatedClickableText(url: String, annotationText: String, modifier: Modifi
                 }
         }
     )
+}
+
+@Preview("Home screen")
+@Composable
+fun PreviewHomeScreen(){
+
 }

@@ -16,9 +16,9 @@ sealed class BottomBarScreen(val route: String, val title: String, @DrawableRes 
         icon = R.drawable.ic_account_box_24
     )
 
-    object DocumentViewer : BottomBarScreen(
-        route = "documentViewer",
-        title = "PDF Cert",
+    object PkpassDetails : BottomBarScreen(
+        route = "pkpass_details",
+        title = "Info",
         icon = R.drawable.ic_document_24_black
     )
 }

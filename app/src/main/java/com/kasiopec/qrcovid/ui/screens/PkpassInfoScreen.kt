@@ -11,7 +11,7 @@ import com.kasiopec.qrcovid.app_components.BottomBarNavigator
 import com.kasiopec.qrcovid.ui.theme.QRCovidTheme
 
 @Composable
-fun DocumentViewerScreen(navController: NavController) {
+fun PkpassInfoScreen(navController: NavController) {
 
     val scaffoldState = rememberScaffoldState()
     QRCovidTheme {

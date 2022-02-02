@@ -22,12 +22,13 @@ import com.kasiopec.qrcovid.navigation.BottomBarScreen
 @Composable
 fun BottomBarNavigator(navController: NavController) {
     val items = listOf(
-        BottomBarScreen.Account,
-        BottomBarScreen.Home
+        BottomBarScreen.Home,
+        BottomBarScreen.PkpassDetails
     )
         //CompositionLocalProvider(LocalRippleTheme provides NoRippleTheme) {
-        BottomNavigation(modifier = Modifier
-            .clip(RoundedCornerShape(15.dp, 15.dp, 0.dp, 0.dp))){
+        BottomNavigation(
+            modifier = Modifier.clip(RoundedCornerShape(15.dp, 15.dp, 0.dp, 0.dp)),
+        ){
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
 

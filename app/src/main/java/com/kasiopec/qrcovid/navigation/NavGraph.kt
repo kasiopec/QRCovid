@@ -7,7 +7,7 @@ import androidx.navigation.compose.composable
 import com.kasiopec.qrcovid.PrefsManager
 import com.kasiopec.qrcovid.QRView
 import com.kasiopec.qrcovid.ui.screens.AccountScreen
-import com.kasiopec.qrcovid.ui.screens.DocumentViewerScreen
+import com.kasiopec.qrcovid.ui.screens.PkpassInfoScreen
 import com.kasiopec.qrcovid.ui.screens.HomeScreen
 
 @Composable
@@ -35,8 +35,8 @@ fun AppNavGraph(navController: NavHostController, prefsManager: PrefsManager, qr
             )
         }
 
-//        composable(BottomBarScreen.DocumentViewer.route) {
-//            DocumentViewerScreen(navController)
-//        }
+        composable(BottomBarScreen.PkpassDetails.route) {
+            PkpassInfoScreen(navController)
+        }
     }
 }

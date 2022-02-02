@@ -17,4 +17,10 @@ object MimeUtil {
             else -> null
         }
     }
+
+    val mimeArray : Array<String>
+        get() = arrayOf(
+            "application/octet-stream",
+            "image/*"
+        )
 }
