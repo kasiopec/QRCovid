@@ -13,7 +13,7 @@
 
 
     <string name="url_covid_certificate">https://covid19sertifikats.lv/</string>
-    <string name="annotation_url_covid_certificate">covid19sertifikats.lv</string>
+    <string name="annotation_url_covid_certificate">www.covid19sertifikats.lv</string>
     <string name="title_home_screen">Your Certificate</string>
     <string name="hint_user_name">Name</string>
     <string name="error_empty_name">Please enter valid name!</string>

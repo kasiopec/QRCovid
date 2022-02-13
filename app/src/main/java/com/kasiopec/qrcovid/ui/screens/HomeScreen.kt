@@ -12,11 +12,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Person
@@ -29,19 +27,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.kasiopec.qrcovid.*
 import com.kasiopec.qrcovid.R
+import com.kasiopec.qrcovid.app_components.AnnotatedClickableText
 import com.kasiopec.qrcovid.app_components.BottomBarNavigator
 import com.kasiopec.qrcovid.navigation.BottomBarScreen
 import com.kasiopec.qrcovid.tools.FileManager
@@ -326,7 +320,8 @@ fun NoQRCard() {
             AnnotatedClickableText(
                 url = stringResource(id = R.string.url_covid_certificate),
                 annotationText = stringResource(id = R.string.annotation_url_covid_certificate),
-                modifier = Modifier.padding(bottom = 32.dp, top = 8.dp)
+                modifier = Modifier.padding(bottom = 32.dp, top = 8.dp),
+                color = Color.Blue
             )
         }
     }
@@ -396,47 +391,6 @@ fun AlertDialogBox(
     }
 }
 
-
-@Composable
-fun AnnotatedClickableText(url: String, annotationText: String, modifier: Modifier) {
-    val uriHandler = LocalUriHandler.current
-    val annotatedText = buildAnnotatedString {
-        // We attach this *URL* annotation to the following content
-        // until `pop()` is called
-        pushStringAnnotation(
-            tag = "URL",
-            annotation = url
-        )
-        withStyle(
-            style = SpanStyle(
-                color = Color.Blue,
-                fontWeight = FontWeight.Bold
-            )
-        ) {
-            append(annotationText)
-        }
-
-        pop()
-    }
-
-    ClickableText(
-        text = annotatedText,
-        style = MaterialTheme.typography.body1,
-        modifier = modifier,
-        onClick = { offset ->
-            // We check if there is an *URL* annotation attached to the text
-            // at the clicked position
-            annotatedText.getStringAnnotations(
-                tag = "URL",
-                start = offset,
-                end = offset
-            )
-                .firstOrNull()?.let { annotation ->
-                    uriHandler.openUri(annotation.item)
-                }
-        }
-    )
-}
 
 @Preview("Home screen")
 @Composable
