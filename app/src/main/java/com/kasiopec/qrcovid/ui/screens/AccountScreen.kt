@@ -108,6 +108,7 @@ fun NameEditField(value: String, isError: Boolean, updateString: (String) -> Uni
                 )
             }
         },
+        //Added this line from git
         onValueChange = {
             updateString(it)
         },
